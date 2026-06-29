@@ -242,9 +242,14 @@ DECLARE_TRACEPOINT(
  *
  * \param[in] message pointer to the message being published
  */
+// DECLARE_TRACEPOINT(
+//   rmw_publish,
+//   const void * message)
 DECLARE_TRACEPOINT(
   rmw_publish,
-  const void * message)
+  const void * rmw_publisher_handle,
+  const void * message,
+  int64_t timestamp)
 
 /// `rmw_subscription_init`
 /**
