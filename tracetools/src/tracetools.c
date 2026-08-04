@@ -138,6 +138,24 @@ DEFINE_TRACEPOINT(
     message))
 
 DEFINE_TRACEPOINT(
+  message_link_take,
+  TRACEPOINT_PARAMS(
+    const int64_t link_id,
+    const uint64_t message),
+  TRACEPOINT_ARGS(
+    link_id,
+    message))
+
+DEFINE_TRACEPOINT(
+  message_link_publish,
+  TRACEPOINT_PARAMS(
+    const int64_t link_id,
+    const uint64_t message),
+  TRACEPOINT_ARGS(
+    link_id,
+    message))
+
+DEFINE_TRACEPOINT(
   rclcpp_intra_publish,
   TRACEPOINT_PARAMS(
     const void * publisher_handle,

@@ -240,6 +240,32 @@ _DECLARE_TRACEPOINT(
   const void * publisher_handle,
   const void * message)
 
+/// `message_link_take`
+/**
+ * Explicit annotation that links a received message/callback context to a
+ * user-defined link id for indirect relay correlation.
+ *
+ * \param[in] link_id user-defined correlation id
+ * \param[in] message pointer to the received message
+ */
+DECLARE_TRACEPOINT(
+  message_link_take,
+  const int64_t link_id,
+  const uint64_t message)
+
+/// `message_link_publish`
+/**
+ * Explicit annotation that links an outgoing publish to a previously-armed
+ * user-defined link id for indirect relay correlation.
+ *
+ * \param[in] link_id user-defined correlation id
+ * \param[in] message pointer to the published message
+ */
+DECLARE_TRACEPOINT(
+  message_link_publish,
+  const int64_t link_id,
+  const uint64_t message)
+
 /// `rclcpp_intra_publish`
 /**
  * Intra-process message publication.

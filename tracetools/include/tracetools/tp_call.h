@@ -111,6 +111,32 @@ TRACEPOINT_EVENT(
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
+  message_link_take,
+  TP_ARGS(
+    const int64_t, link_id_arg,
+    const uint64_t, message_arg
+  ),
+  TP_FIELDS(
+    ctf_integer(int64_t, link_id, link_id_arg)
+    ctf_integer_hex(uint64_t, message, message_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  message_link_publish,
+  TP_ARGS(
+    const int64_t, link_id_arg,
+    const uint64_t, message_arg
+  ),
+  TP_FIELDS(
+    ctf_integer(int64_t, link_id, link_id_arg)
+    ctf_integer_hex(uint64_t, message, message_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
   rclcpp_intra_publish,
   TP_ARGS(
     const void *, publisher_handle_arg,
