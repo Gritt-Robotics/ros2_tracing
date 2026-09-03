@@ -248,7 +248,7 @@ _DECLARE_TRACEPOINT(
  * \param[in] link_id user-defined correlation id
  * \param[in] message pointer to the received message
  */
-DECLARE_TRACEPOINT(
+_DECLARE_TRACEPOINT(
   message_link_take,
   const int64_t link_id,
   const uint64_t message)
@@ -261,7 +261,7 @@ DECLARE_TRACEPOINT(
  * \param[in] link_id user-defined correlation id
  * \param[in] message pointer to the published message
  */
-DECLARE_TRACEPOINT(
+_DECLARE_TRACEPOINT(
   message_link_publish,
   const int64_t link_id,
   const uint64_t message)
