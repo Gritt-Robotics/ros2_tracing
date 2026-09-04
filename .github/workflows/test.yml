@@ -51,6 +51,7 @@ jobs:
         python3 -m pip install 'mypy==0.942'
     - uses: ros-tooling/action-ros-ci@master
       with:
+        import-token: ${{ secrets.GITHUB_TOKEN }}
         package-name: >
           ros2trace
           test_ros2trace
