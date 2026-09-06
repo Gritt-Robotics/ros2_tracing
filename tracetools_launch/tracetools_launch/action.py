@@ -112,6 +112,7 @@ class Trace(Action):
         append_trace: bool = False,
         events_ust: Iterable[SomeSubstitutionsType] = names.DEFAULT_EVENTS_ROS,
         events_kernel: Iterable[SomeSubstitutionsType] = [],
+        events_python: Iterable[SomeSubstitutionsType] = names.DEFAULT_EVENTS_PYTHON,
         context_fields:
             Union[Iterable[SomeSubstitutionsType], Dict[str, Iterable[SomeSubstitutionsType]]]
             = names.DEFAULT_CONTEXT,
@@ -139,6 +140,8 @@ class Trace(Action):
         :param append_trace: whether to append to the trace directory if it already exists,
             otherwise an error is reported
         :param events_ust: the list of ROS UST events to enable
+        :param events_python: the list of Python logger names to enable through the
+            LTTng agent domain
         :param events_kernel: the list of kernel events to enable
         :param context_fields: the names of context fields to enable
             if it's a list or a set, the context fields are enabled for both kernel and userspace;
@@ -159,6 +162,9 @@ class Trace(Action):
         self._append_trace = append_trace
         self._trace_directory = None
         self._events_ust = [normalize_to_list_of_substitutions(x) for x in events_ust]
+        self._events_python = [
+            normalize_to_list_of_substitutions(x) for x in events_python
+        ]
         self._events_kernel = [normalize_to_list_of_substitutions(x) for x in events_kernel]
         self._context_fields = \
             {
@@ -190,6 +196,10 @@ class Trace(Action):
     @property
     def events_ust(self):
         return self._events_ust
+
+    @property
+    def events_python(self):
+        return self._events_python
 
     @property
     def events_kernel(self):
@@ -287,6 +297,10 @@ class Trace(Action):
             kwargs['append_trace'] = append_trace
         # Make sure to handle empty strings and replace with empty lists,
         # otherwise an empty string enables all events
+        events_python = entity.get_attr('events-python', optional=True)
+        if events_python is not None:
+            kwargs['events_python'] = cls._parse_cmdline(events_python, parser) \
+                if events_python else []
         events_ust = entity.get_attr('events-ust', optional=True)
         if events_ust is not None:
             kwargs['events_ust'] = cls._parse_cmdline(events_ust, parser) \
@@ -373,6 +387,9 @@ class Trace(Action):
         self._base_path = perform_substitutions(context, self._base_path) \
             if self._base_path else path.get_tracing_directory()
         self._events_ust = [perform_substitutions(context, x) for x in self._events_ust]
+        self._events_python = [
+            perform_substitutions(context, x) for x in self._events_python
+        ]
         self._events_kernel = [perform_substitutions(context, x) for x in self._events_kernel]
         self._context_fields = \
             {
@@ -417,6 +434,7 @@ class Trace(Action):
                 base_path=self._base_path,
                 append_trace=self._append_trace,
                 ros_events=self._events_ust,
+                python_events=self._events_python,
                 kernel_events=self._events_kernel,
                 context_fields=self._context_fields,
                 subbuffer_size_ust=self._subbuffer_size_ust,
@@ -453,6 +471,7 @@ class Trace(Action):
             f'append_trace={self._append_trace}, '
             f'trace_directory={self._trace_directory}, '
             f'events_ust={self._events_ust}, '
+            f'events_python={self._events_python}, '
             f'events_kernel={self._events_kernel}, '
             f'context_fields={self._context_fields}, '
             f'ld_preload_actions={self._ld_preload_actions}, '

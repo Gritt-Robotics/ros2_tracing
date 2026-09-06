@@ -28,6 +28,7 @@ from lttngpy import impl as lttngpy
 from packaging.version import Version
 
 from .names import DEFAULT_CONTEXT
+from .names import DEFAULT_EVENTS_PYTHON
 from .names import DEFAULT_EVENTS_ROS
 from .names import DOMAIN_TYPE_KERNEL
 from .names import DOMAIN_TYPE_USERSPACE
@@ -151,9 +152,11 @@ def setup(
     append_trace: bool = False,
     ros_events: Union[List[str], Set[str]] = DEFAULT_EVENTS_ROS,
     kernel_events: Union[List[str], Set[str]] = [],
+    python_events: Union[List[str], Set[str]] = DEFAULT_EVENTS_PYTHON,
     context_fields: Union[List[str], Set[str], Dict[str, List[str]]] = DEFAULT_CONTEXT,
     channel_name_ust: str = 'ros2',
     channel_name_kernel: str = 'kchan',
+    channel_name_python: str = 'python',
     subbuffer_size_ust: int = 8 * 4096,
     subbuffer_size_kernel: int = 32 * 4096,
 ) -> Optional[str]:
@@ -175,6 +178,7 @@ def setup(
         an error is reported
     :param ros_events: list of ROS events to enable
     :param kernel_events: list of kernel events to enable
+    :param python_events: list of Python logger names to enable through the agent domain
     :param context_fields: the names of context fields to enable
         if it's a list or a set, the context fields are enabled for both kernel and userspace;
         if it's a dictionary: { domain type string -> context fields list }
@@ -182,6 +186,7 @@ def setup(
             `names.DOMAIN_TYPE_USERSPACE`
     :param channel_name_ust: the UST channel name
     :param channel_name_kernel: the kernel channel name
+    :param channel_name_python: the Python agent domain channel name
     :param subbuffer_size_ust: the size of the subbuffers for userspace events (defaults to 8 times
         the usual page size)
     :param subbuffer_size_kernel: the size of the subbuffers for kernel events (defaults to 32
@@ -229,12 +234,15 @@ def setup(
         ros_events = set(ros_events)
     if not isinstance(kernel_events, set):
         kernel_events = set(kernel_events)
+    if not isinstance(python_events, set):
+        python_events = set(python_events)
     if isinstance(context_fields, list):
         context_fields = set(context_fields)
 
     ust_enabled = ros_events is not None and len(ros_events) > 0
     kernel_enabled = kernel_events is not None and len(kernel_events) > 0
-    if not (ust_enabled or kernel_enabled):
+    python_enabled = python_events is not None and len(python_events) > 0
+    if not (ust_enabled or kernel_enabled or python_enabled):
         raise RuntimeError('no events enabled')
 
     # Create session
@@ -313,6 +321,15 @@ def setup(
             domain_type=domain_type,
             channel_name=channel_name,
             context_fields=contexts_dict.get(domain),
+        )
+    if python_enabled:
+        # The agent domain has no configurable channel and rejects contexts, so enable the
+        # logger names on the default channel the session daemon creates for it.
+        _enable_events(
+            session_name=session_name,
+            domain_type=lttngpy.LTTNG_DOMAIN_PYTHON,
+            channel_name=channel_name_python,
+            events=python_events,
         )
 
     return full_path

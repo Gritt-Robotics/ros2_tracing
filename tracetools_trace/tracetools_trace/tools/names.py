@@ -15,6 +15,8 @@
 
 """Lists of names (events, context) for tracing."""
 
+from typing import List
+
 from . import tracepoints
 
 EVENTS_KERNEL = [
@@ -101,8 +103,13 @@ DEFAULT_EVENTS_ROS = [
 
 DEFAULT_EVENTS_UST = DEFAULT_EVENTS_ROS
 
+# Python agent domain events are logger names, and the domain is opt-in: it only produces
+# events if the traced process imports lttngust, so nothing is enabled by default.
+DEFAULT_EVENTS_PYTHON: List[str] = []
+
 DOMAIN_TYPE_KERNEL = 'kernel'
 DOMAIN_TYPE_USERSPACE = 'userspace'
+DOMAIN_TYPE_PYTHON = 'python'
 
 # These apply to both kernel & userspace domains
 DEFAULT_CONTEXT = [

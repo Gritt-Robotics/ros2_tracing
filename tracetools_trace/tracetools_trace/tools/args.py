@@ -63,6 +63,11 @@ def _add_arguments_configure(parser: argparse.ArgumentParser) -> None:
         default=[],
         help='the kernel events to enable (default: no kernel events)')
     events_kernel_arg.completer = ArgCompleter(names.EVENTS_KERNEL)  # type: ignore
+    parser.add_argument(  # type: ignore
+        '-p', '--python', nargs='*', dest='events_python', metavar='LOGGER',
+        default=names.DEFAULT_EVENTS_PYTHON,
+        help='the Python logger names to enable through the LTTng agent domain '
+             '(default: no Python events)')
     context_arg = parser.add_argument(  # type: ignore
         '-c', '--context', nargs='*', dest='context_fields', metavar='CONTEXT',
         default=names.DEFAULT_CONTEXT,
