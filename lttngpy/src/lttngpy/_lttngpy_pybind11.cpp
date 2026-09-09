@@ -142,7 +142,8 @@ PYBIND11_MODULE(_lttngpy_pybind11, m) {
     py::arg("session_name"),
     py::arg("domain_type"),
     py::arg("channel_name"),
-    py::arg("events"));
+    py::arg("events"),
+    py::arg("filter_expression") = "");
   m.def(
     "get_tracepoints",
     &lttngpy::get_tracepoints,
@@ -156,7 +157,7 @@ PYBIND11_MODULE(_lttngpy_pybind11, m) {
     py::kw_only(),
     py::arg("session_name"),
     py::arg("domain_type"),
-    py::arg("channel_name"),
+    py::arg("channel_name") = "",
     py::arg("context_fields"));
 
   // Error

@@ -31,13 +31,16 @@ namespace lttngpy
  * \param domain_type the domain type
  * \param channel_name the channel name
  * \param events the set of event names
+ * \param filter_expression the filter expression to attach to each event rule, or an empty
+ *   string for no filter
  * \return 0 on success, else a negative LTTng error code
  */
 int enable_events(
   const std::string & session_name,
   const enum lttng_domain_type domain_type,
   const std::string & channel_name,
-  const std::set<std::string> & events);
+  const std::set<std::string> & events,
+  const std::string & filter_expression = "");
 
 /**
  * Get tracepoints.
@@ -53,7 +56,8 @@ std::variant<int, std::set<std::string>> get_tracepoints(const enum lttng_domain
  *
  * \param session_name the session name
  * \param domain_type the domain type
- * \param channel_name the channel name
+ * \param channel_name the channel name, or an empty string to add the contexts to all
+ *   channels of the domain (see `lttng_add_context`)
  * \param context_fields the set of context field names
  * \return 0 on success, else a negative LTTng error code
  */

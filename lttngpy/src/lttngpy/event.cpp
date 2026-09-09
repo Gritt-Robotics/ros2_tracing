@@ -34,15 +34,25 @@ int enable_events(
   const std::string & session_name,
   const enum lttng_domain_type domain_type,
   const std::string & channel_name,
-  const std::set<std::string> & events)
+  const std::set<std::string> & events,
+  const std::string & filter_expression)
 {
   if (events.empty()) {
     return 0;
   }
 
-  // We do not actually need to specify a buffer type for this
   struct lttng_domain domain {};
   domain.type = domain_type;
+  // Agent domains only support per-UID buffering; this call auto-creates their channel.
+  switch (domain_type) {
+    case LTTNG_DOMAIN_JUL:
+    case LTTNG_DOMAIN_LOG4J:
+    case LTTNG_DOMAIN_PYTHON:
+      domain.buf_type = LTTNG_BUFFER_PER_UID;
+      break;
+    default:
+      break;
+  }
 
   struct lttng_handle * handle = lttng_create_handle(session_name.c_str(), &domain);
   if (nullptr == handle) {
@@ -59,7 +69,9 @@ int enable_events(
     event_name.copy(event->name, LTTNG_SYMBOL_NAME_LEN);
     event->type = LTTNG_EVENT_TRACEPOINT;
 
-    ret = lttng_enable_event(handle, event, channel_name.c_str());
+    ret = lttng_enable_event_with_filter(
+      handle, event, channel_name.c_str(),
+      filter_expression.empty() ? nullptr : filter_expression.c_str());
     lttng_event_destroy(event);
     if (0 != ret) {
       break;
@@ -188,7 +200,10 @@ int add_contexts(
     struct lttng_event_context context = {};
     ret = _fill_in_event_context(context_field, domain_type, &context);
     if (0 == ret) {
-      ret = lttng_add_context(handle, &context, nullptr, channel_name.c_str());
+      // An empty channel_name means "all channels of the domain" -- lttng_add_context only
+      // recognizes that as a nullptr, not an empty C string.
+      const char * channel_name_arg = channel_name.empty() ? nullptr : channel_name.c_str();
+      ret = lttng_add_context(handle, &context, nullptr, channel_name_arg);
     }
 
     // Free app context strings

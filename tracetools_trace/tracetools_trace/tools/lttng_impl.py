@@ -153,6 +153,7 @@ def setup(
     ros_events: Union[List[str], Set[str]] = DEFAULT_EVENTS_ROS,
     kernel_events: Union[List[str], Set[str]] = [],
     python_events: Union[List[str], Set[str]] = DEFAULT_EVENTS_PYTHON,
+    ros_events_filter: Optional[str] = None,
     context_fields: Union[List[str], Set[str], Dict[str, List[str]]] = DEFAULT_CONTEXT,
     channel_name_ust: str = 'ros2',
     channel_name_kernel: str = 'kchan',
@@ -179,6 +180,9 @@ def setup(
     :param ros_events: list of ROS events to enable
     :param kernel_events: list of kernel events to enable
     :param python_events: list of Python logger names to enable through the agent domain
+    :param ros_events_filter: an LTTng filter expression to attach to every enabled ROS
+        event rule, restricting which processes record them (e.g. on `$ctx.procname`), or
+        `None` to record every process
     :param context_fields: the names of context fields to enable
         if it's a list or a set, the context fields are enabled for both kernel and userspace;
         if it's a dictionary: { domain type string -> context fields list }
@@ -281,12 +285,7 @@ def setup(
             domain_type=domain_type,
             channel_name=channel_name,
             events=ros_events,
-        )
-        _add_contexts(
-            session_name=session_name,
-            domain_type=domain_type,
-            channel_name=channel_name,
-            context_fields=contexts_dict.get(domain),
+            filter_expression=ros_events_filter or '',
         )
     if kernel_enabled:
         domain = DOMAIN_TYPE_KERNEL
@@ -316,20 +315,29 @@ def setup(
             channel_name=channel_name,
             events=kernel_events,
         )
-        _add_contexts(
-            session_name=session_name,
-            domain_type=domain_type,
-            channel_name=channel_name,
-            context_fields=contexts_dict.get(domain),
-        )
     if python_enabled:
-        # The agent domain has no configurable channel and rejects contexts, so enable the
-        # logger names on the default channel the session daemon creates for it.
+        # Must run before the UST _add_contexts call below: only channels that already
+        # exist when it runs get the broadcast context (see its comment).
         _enable_events(
             session_name=session_name,
             domain_type=lttngpy.LTTNG_DOMAIN_PYTHON,
             channel_name=channel_name_python,
             events=python_events,
+        )
+    if ust_enabled:
+        _add_contexts(
+            session_name=session_name,
+            domain_type=lttngpy.LTTNG_DOMAIN_UST,
+            # No channel_name: the Python agent domain's channel shares this per-UID buffer
+            # registry, and lttng_add_context only reaches it when given no channel name.
+            context_fields=contexts_dict.get(DOMAIN_TYPE_USERSPACE),
+        )
+    if kernel_enabled:
+        _add_contexts(
+            session_name=session_name,
+            domain_type=lttngpy.LTTNG_DOMAIN_KERNEL,
+            channel_name=channel_name_kernel,
+            context_fields=contexts_dict.get(DOMAIN_TYPE_KERNEL),
         )
 
     return full_path
@@ -502,7 +510,7 @@ def _add_contexts(**kwargs) -> None:
     result = lttngpy.add_contexts(**kwargs)
     if result < 0:
         session_name = kwargs['session_name']
-        channel_name = kwargs['channel_name']
+        channel_name = kwargs.get('channel_name') or 'all channels'
         domain_type = kwargs['domain_type']
         error = lttngpy.lttng_strerror(result)
         raise RuntimeError(
