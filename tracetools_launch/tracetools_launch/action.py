@@ -113,6 +113,7 @@ class Trace(Action):
         events_ust: Iterable[SomeSubstitutionsType] = names.DEFAULT_EVENTS_ROS,
         events_kernel: Iterable[SomeSubstitutionsType] = [],
         events_python: Iterable[SomeSubstitutionsType] = names.DEFAULT_EVENTS_PYTHON,
+        events_ust_filter: Optional[SomeSubstitutionsType] = None,
         context_fields:
             Union[Iterable[SomeSubstitutionsType], Dict[str, Iterable[SomeSubstitutionsType]]]
             = names.DEFAULT_CONTEXT,
@@ -143,6 +144,11 @@ class Trace(Action):
         :param events_python: the list of Python logger names to enable through the
             LTTng agent domain
         :param events_kernel: the list of kernel events to enable
+        :param events_ust_filter: an LTTng filter expression attached to every enabled UST
+            event rule, or `None` to record every process. Filtering on `$ctx.procname`
+            is how a session records only some of the running processes, since an event
+            rule is otherwise global to the host and the tracepoints are compiled into
+            every ROS node
         :param context_fields: the names of context fields to enable
             if it's a list or a set, the context fields are enabled for both kernel and userspace;
             if it's a dictionary: { domain type string -> context fields list }
@@ -166,6 +172,8 @@ class Trace(Action):
             normalize_to_list_of_substitutions(x) for x in events_python
         ]
         self._events_kernel = [normalize_to_list_of_substitutions(x) for x in events_kernel]
+        self._events_ust_filter = None if events_ust_filter is None \
+            else normalize_to_list_of_substitutions(events_ust_filter)
         self._context_fields = \
             {
                 domain: [normalize_to_list_of_substitutions(field) for field in fields]
@@ -204,6 +212,10 @@ class Trace(Action):
     @property
     def events_kernel(self):
         return self._events_kernel
+
+    @property
+    def events_ust_filter(self):
+        return self._events_ust_filter
 
     @property
     def context_fields(self):
@@ -309,6 +321,9 @@ class Trace(Action):
         if events_kernel is not None:
             kwargs['events_kernel'] = cls._parse_cmdline(events_kernel, parser) \
                 if events_kernel else []
+        events_ust_filter = entity.get_attr('events-ust-filter', optional=True)
+        if events_ust_filter:
+            kwargs['events_ust_filter'] = parser.parse_substitution(events_ust_filter)
         context_fields = entity.get_attr('context-fields', optional=True)
         if context_fields is not None:
             kwargs['context_fields'] = cls._parse_cmdline(context_fields, parser) \
@@ -391,6 +406,8 @@ class Trace(Action):
             perform_substitutions(context, x) for x in self._events_python
         ]
         self._events_kernel = [perform_substitutions(context, x) for x in self._events_kernel]
+        self._events_ust_filter = None if self._events_ust_filter is None \
+            else perform_substitutions(context, self._events_ust_filter)
         self._context_fields = \
             {
                 domain: [perform_substitutions(context, field) for field in fields]
@@ -436,6 +453,7 @@ class Trace(Action):
                 ros_events=self._events_ust,
                 python_events=self._events_python,
                 kernel_events=self._events_kernel,
+                ros_events_filter=self._events_ust_filter,
                 context_fields=self._context_fields,
                 subbuffer_size_ust=self._subbuffer_size_ust,
                 subbuffer_size_kernel=self._subbuffer_size_kernel,
