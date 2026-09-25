@@ -1,5 +1,6 @@
 // Copyright 2019 Robert Bosch GmbH
 // Copyright 2020 Christophe Bedard
+// Copyright 2026 Gritt Robotics Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,6 +33,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "tracetools/version.h"
+
 /// See RMW_GID_STORAGE_SIZE in rmw.
 #define TRACETOOLS_GID_STORAGE_SIZE 24u
 
@@ -43,7 +46,7 @@ TRACEPOINT_EVENT(
   ),
   TP_FIELDS(
     ctf_integer_hex(const void *, context_handle, context_handle_arg)
-    ctf_string(version, tracetools_VERSION)
+    ctf_string(version, TRACETOOLS_VERSION_STR)
   )
 )
 
@@ -109,6 +112,32 @@ TRACEPOINT_EVENT(
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,
+  message_link_take,
+  TP_ARGS(
+    const int64_t, link_id_arg,
+    const uint64_t, message_arg
+  ),
+  TP_FIELDS(
+    ctf_integer(int64_t, link_id, link_id_arg)
+    ctf_integer_hex(uint64_t, message, message_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
+  message_link_publish,
+  TP_ARGS(
+    const int64_t, link_id_arg,
+    const uint64_t, message_arg
+  ),
+  TP_FIELDS(
+    ctf_integer(int64_t, link_id, link_id_arg)
+    ctf_integer_hex(uint64_t, message, message_arg)
+  )
+)
+
+TRACEPOINT_EVENT(
+  TRACEPOINT_PROVIDER,
   rclcpp_intra_publish,
   TP_ARGS(
     const void *, publisher_handle_arg,
@@ -132,17 +161,6 @@ TRACEPOINT_EVENT(
     ctf_integer_hex(const void *, message, message_arg)
   )
 )
-
-// TRACEPOINT_EVENT(
-//   TRACEPOINT_PROVIDER,
-//   rmw_publish,
-//   TP_ARGS(
-//     const void *, message_arg
-//   ),
-//   TP_FIELDS(
-//     ctf_integer_hex(const void *, message, message_arg)
-//   )
-// )
 
 TRACEPOINT_EVENT(
   TRACEPOINT_PROVIDER,

@@ -1,4 +1,4 @@
-// Copyright 2020 Christophe Bedard
+// Copyright 2023 Apex.AI, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "tracetools/config.h"
-#include "tracetools/status.h"
-#include "tracetools/tracetools.h"
+#include "lttngpy/config.hpp"
+#include "lttngpy/status.hpp"
 
-int main(void)
+namespace lttngpy
 {
-#ifndef TRACETOOLS_DISABLED
-  return tracetools_status(ros_trace_compile_status());
+
+bool is_available()
+{
+#ifndef LTTNGPY_DISABLED
+  return true;
 #else
-  return tracetools_status(false);
+  return false;
 #endif
 }
+
+}  // namespace lttngpy

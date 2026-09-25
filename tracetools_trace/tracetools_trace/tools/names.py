@@ -1,5 +1,6 @@
 # Copyright 2019 Robert Bosch GmbH
 # Copyright 2021 Christophe Bedard
+# Copyright 2026 Gritt Robotics Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +15,8 @@
 # limitations under the License.
 
 """Lists of names (events, context) for tracing."""
+
+from typing import List
 
 from . import tracepoints
 
@@ -101,29 +104,13 @@ DEFAULT_EVENTS_ROS = [
 
 DEFAULT_EVENTS_UST = DEFAULT_EVENTS_ROS
 
-CONTEXT_TYPE_CONSTANTS_MAP = {
-    'pid': 'EVENT_CONTEXT_PID',
-    'procname': 'EVENT_CONTEXT_PROCNAME',
-    'prio': 'EVENT_CONTEXT_PRIO',
-    'nice': 'EVENT_CONTEXT_NICE',
-    'vpid': 'EVENT_CONTEXT_VPID',
-    'tid': 'EVENT_CONTEXT_TID',
-    'vtid': 'EVENT_CONTEXT_VTID',
-    'ppid': 'EVENT_CONTEXT_PPID',
-    'vppid': 'EVENT_CONTEXT_VPPID',
-    'pthread_id': 'EVENT_CONTEXT_PTHREAD_ID',
-    'hostname': 'EVENT_CONTEXT_HOSTNAME',
-    'ip': 'EVENT_CONTEXT_IP',
-    'interruptible': 'EVENT_CONTEXT_INTERRUPTIBLE',
-    'preemptible': 'EVENT_CONTEXT_PREEMPTIBLE',
-    'need_reschedule': 'EVENT_CONTEXT_NEED_RESCHEDULE',
-    'migratable': 'EVENT_CONTEXT_MIGRATABLE',
-    'perf:thread:instructions': None,
-    'perf:thread:cycles': None,
-    'perf:thread:cpu-cycles': None,
-}
+# Python agent domain events are logger names, and the domain is opt-in: it only produces
+# events if the traced process imports lttngust, so nothing is enabled by default.
+DEFAULT_EVENTS_PYTHON: List[str] = []
 
-CONTEXT = list(CONTEXT_TYPE_CONSTANTS_MAP.keys())
+DOMAIN_TYPE_KERNEL = 'kernel'
+DOMAIN_TYPE_USERSPACE = 'userspace'
+DOMAIN_TYPE_PYTHON = 'python'
 
 # These apply to both kernel & userspace domains
 DEFAULT_CONTEXT = [

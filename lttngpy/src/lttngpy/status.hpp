@@ -1,4 +1,4 @@
-// Copyright 2020 Christophe Bedard
+// Copyright 2023 Apex.AI, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "tracetools/config.h"
-#include "tracetools/status.h"
-#include "tracetools/tracetools.h"
+#ifndef LTTNGPY__STATUS_HPP_
+#define LTTNGPY__STATUS_HPP_
 
-int main(void)
+namespace lttngpy
 {
-#ifndef TRACETOOLS_DISABLED
-  return tracetools_status(ros_trace_compile_status());
-#else
-  return tracetools_status(false);
-#endif
-}
+
+/**
+ * Check if lttng-ctl is available.
+ *
+ * This is the only function guaranteed to exist in this Python module. If this returns false, then
+ * it means that no other functions are available.
+ *
+ * This is false on non-Linux platforms, or if it was explicitly disabled during build.
+ *
+ * \return true if available, false otherwise
+ */
+bool is_available();
+
+}  // namespace lttngpy
+
+#endif  // LTTNGPY__STATUS_HPP_

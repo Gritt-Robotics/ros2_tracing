@@ -1,4 +1,4 @@
-// Copyright 2020 Christophe Bedard
+// Copyright 2023 Apex.AI, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "tracetools/config.h"
-#include "tracetools/status.h"
-#include "tracetools/tracetools.h"
+#ifndef LTTNGPY__CONFIG_HPP_
+#define LTTNGPY__CONFIG_HPP_
 
-int main(void)
-{
-#ifndef TRACETOOLS_DISABLED
-  return tracetools_status(ros_trace_compile_status());
-#else
-  return tracetools_status(false);
-#endif
-}
+#cmakedefine LTTNGPY_DISABLED @LTTNGPY_DISABLED@
+#define LTTNG_CTL_VERSION "@LTTNG_CTL_VERSION@"
+#define LTTNG_CTL_VERSION_MAJOR (@LTTNG_CTL_VERSION_MAJOR@)
+#define LTTNG_CTL_VERSION_MINOR (@LTTNG_CTL_VERSION_MINOR@)
+#define LTTNG_CTL_VERSION_PATCH (@LTTNG_CTL_VERSION_PATCH@)
+
+#endif  // LTTNGPY__CONFIG_HPP_

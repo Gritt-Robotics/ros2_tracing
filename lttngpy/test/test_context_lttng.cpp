@@ -1,4 +1,4 @@
-// Copyright 2020 Christophe Bedard
+// Copyright 2023 Apex.AI, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "tracetools/config.h"
-#include "tracetools/status.h"
-#include "tracetools/tracetools.h"
+#include <gtest/gtest.h>
+#include <lttng/event.h>
 
-int main(void)
-{
-#ifndef TRACETOOLS_DISABLED
-  return tracetools_status(ros_trace_compile_status());
-#else
-  return tracetools_status(false);
-#endif
+#include <optional>
+
+#include "lttngpy/context_lttng.hpp"
+
+TEST(TestContextLttng, invalid_context_name) {
+  EXPECT_EQ(std::nullopt, lttngpy::get_lttng_context_type(""));
+  EXPECT_EQ(std::nullopt, lttngpy::get_lttng_context_type("unknown"));
+}
+
+TEST(TestContextLttng, valid_context_name) {
+  const auto opt = lttngpy::get_lttng_context_type("pid");
+  ASSERT_TRUE(opt.has_value());
+  EXPECT_EQ(LTTNG_EVENT_CONTEXT_PID, opt.value());
 }

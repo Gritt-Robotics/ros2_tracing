@@ -7,7 +7,7 @@ package_name = 'tracetools_launch'
 
 setup(
     name=package_name,
-    version='6.3.3',
+    version='8.2.6',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/' + package_name, ['package.xml']),
@@ -34,7 +34,11 @@ setup(
         'launch tracing through a launch file.'
     ),
     license='Apache 2.0',
-    tests_require=['pytest'],
+    extras_require={
+        'test': [
+            'pytest',
+        ],
+    },
     entry_points={
         'launch.frontend.launch_extension': [
             'tracetools_launch = tracetools_launch',
